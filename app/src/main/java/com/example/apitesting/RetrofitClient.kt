@@ -6,9 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 
 object RetrofitClient {
-//    private const val BASE_URL = "http://localhost:8080/"
-
-    private const val BASE_URL = "https://dashboardbackend-production-9839.up.railway.app/"
+    private const val BASE_URL = "https://dashboardbackend-production-9839.up.railway.app/" // Replace with your actual server URL
 
     private var retrofit: Retrofit? = null
 

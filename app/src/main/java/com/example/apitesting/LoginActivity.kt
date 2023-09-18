@@ -2,16 +2,16 @@ package com.example.apitesting
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
+import com.google.gson.Gson
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class LoginActivity : AppCompatActivity() {
 
@@ -22,7 +22,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var loginButton: Button
     private lateinit var passResetBtn: TextView
 
-
+    private val gson = Gson()
 
     private lateinit var apiService: ApiService
 
@@ -43,11 +43,6 @@ class LoginActivity : AppCompatActivity() {
         apiService = RetrofitClient.getClient().create(ApiService::class.java)
 
 
-        apiService = Retrofit.Builder()
-            .baseUrl("https://dashboardbackend-production-9839.up.railway.app/") // Replace with your API base URL
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
 
         newUserTextView.setOnClickListener {
             val intent = Intent(this, RegistrationActivity::class.java)
@@ -59,58 +54,52 @@ class LoginActivity : AppCompatActivity() {
             val email = emailEditText.text.toString()
             val password = passwordEditText.text.toString()
 
-// Create a login request object
-            val loginAdmin = LoginData(email, password)
 
-            apiService.loginRequest(loginAdmin).enqueue(object : Callback<LoginResponse> {
-                override fun onResponse(
-                    call: Call<LoginResponse>,
-                    response: Response<LoginResponse>
-                ) {
+            val loginAdmin = LoginData(email, password)
+            val adminDataJson = gson.toJsonTree(loginAdmin).asJsonObject
+            Log.d("-----------", "onCreate: user data"+adminDataJson)
+            val call = apiService.loginRequest(adminDataJson)
+            call.enqueue(object : Callback<Any> {
+                override fun onResponse(call: Call<Any>, response: Response<Any>) {
                     if (response.isSuccessful) {
-                        val loginResponse = response.body()
-                        if (loginResponse != null) {
-                            if (loginResponse.status == "Success") {
-                                Toast.makeText(this@LoginActivity, "Registration successful", Toast.LENGTH_SHORT).show()
-                                val intent = Intent(applicationContext, MainActivity::class.java)
-                                startActivity(intent)
-                            } else {
-                                Toast.makeText(this@LoginActivity, "Registration fail", Toast.LENGTH_SHORT).show()
-                                // Login failed, handle the error message
-//                                val message = LoginResponse.message
-                                // Display the error message to the user
-                            }
-                        }
+                        Toast.makeText(
+                            this@LoginActivity,
+                            "login Succeccful",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        val intent = Intent(applicationContext, MainActivity::class.java)
+                        startActivity(intent)
                     } else {
-                        // Login request failed, handle the error
-                        // Display an error message to the user
-                        Toast.makeText(this@LoginActivity, "Registration network error" , Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@LoginActivity,
+                            "login fail",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
 
-                override fun onFailure(call: Call<LoginResponse>, t: Throwable) {
-                    // Handle network errors here
-                    // Display a network error message to the user
+                override fun onFailure(call: Call<Any>, t: Throwable) {
+                    Toast.makeText(
+                        this@LoginActivity,
+                        "login network error",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             })
         }
         }
     }
 
-private fun <T> Call<T>.enqueue(callback: Callback<LoginResponse>) {
+private fun <T> Call<T>.enqueue(callback: Callback<Any>) {
 
 }
+
 
 data class LoginData(
     val email : String,
     val password :String
 )
 
-data class LoginResponse(
-    val status: String?,
-    val token: String?, // Define the 'token' property here
-    val message: String? // De
-)
 
 //        mAuth = FirebaseAuth.getInstance()
 //

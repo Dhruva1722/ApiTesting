@@ -4,20 +4,22 @@ import com.google.gson.JsonObject
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
+
 import retrofit2.http.POST
-import retrofit2.http.Path
+
 
 interface ApiService {
-    @POST("/empregister") // Replace with your actual endpoint URL
-    fun registerUser(@Body registrationData: JsonObject): Call<Void>
+
+    @POST("/empregister")
+    fun registerUser(@Body registrationData: JsonObject): Call<Any>
+
 
     @POST("/emplogin")
-    fun loginRequest(@Body credentials: LoginData): Call<RegistrationActivity>
+    fun loginRequest(@Body credentials: JsonObject): Call<Any>
 
-    @GET("/get/{id}")
-    fun getAdminById(@Path("id") id: String): Call<RegistrationActivity>
+    @GET("/get")
+    fun getEmployees(): Call<List<Employee>>
 
     @GET("/getAdmin")
     fun getAllAdmins(): Call<List<RegistrationActivity>>
-
 }

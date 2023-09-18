@@ -13,8 +13,6 @@ import com.google.gson.JsonObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 
 private val Any.message: Any
@@ -38,87 +36,68 @@ class RegistrationActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registration)
+        apiService = RetrofitClient.getClient().create(ApiService::class.java)
 
-       apiService = RetrofitClient.getClient().create(ApiService::class.java)
 
-
-        apiService = Retrofit.Builder()
-//            .baseUrl("https://dashboardbackend-production-9839.up.railway.app/") // Replace with your API base URL
-              .baseUrl("http://localhost:8080/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
 
         val registerButton = findViewById<Button>(R.id.registerBtn)
-        val registerId = findViewById<TextInputEditText>(R.id.registerID)
-        val registerEmail = findViewById<TextInputEditText>(R.id.registerEmailID)
+        val registerEmpID = findViewById<TextInputEditText>(R.id.registerID)
         val registerName = findViewById<TextInputEditText>(R.id.registerNameID)
+        val registerEmail = findViewById<TextInputEditText>(R.id.registerEmailID)
         val registerPassword = findViewById<TextInputEditText>(R.id.registerPasswordID)
-
+        val registerConfirmPass = findViewById<TextInputEditText>(R.id.confirm_pass_ID)
 
         registerButton.setOnClickListener {
-            val _id = registerId.text.toString()
-            val email = registerEmail.text.toString()
+            val Emp_ID = registerEmpID.text.toString()
             val name = registerName.text.toString()
+            val email = registerEmail.text.toString()
             val password = registerPassword.text.toString()
+            val confirm_password = registerConfirmPass.text.toString()
 
+            val registrationData = RegistrationData(Emp_ID,name, email, password, confirm_password)
+            val adminDataJson = gson.toJsonTree(registrationData).asJsonObject
+            Log.d("-----------", "onCreate: user data"+adminDataJson)
+            // Make the API request
+            val call = apiService.registerUser(adminDataJson)
 
-            val registrationData = JsonObject().apply {
-                addProperty("_id", _id)
-                addProperty("name", name)
-                addProperty("email", email)
-                addProperty("password", password)
-
-            }
-
-            val response = apiService.registerUser(registrationData)
-//          val adminData = AdminData(_id, email,name, password)
-
-            if (response.isSuccessful) {
-                // Registration was successful, handle the success message
-                val registrationResponse = response.body()
-                if (registrationResponse != null) {
-                    if (registrationResponse.status == "Success") {
-                        // Registration was successful, handle the success message
-//                        Toast.makeText(this@RegistrationActivity,
-//                            registrationResponse.message,
-//                            Toast.LENGTH_SHORT
-//                        ).show()
-
-                        Log.d("----------" ,"onCreate: successfull")
-
-                        // Redirect to the login page or perform other actions as needed
+            call.enqueue(object : Callback<Any> {
+                override fun onResponse(call: Call<Any>, response: Response<Any>) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(
+                            this@RegistrationActivity,
+                            "Registration Succeccful",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        val intent = Intent(applicationContext, MainActivity::class.java)
+                        startActivity(intent)
                     } else {
-                        // Registration failed, handle the error message
-//                        Toast.makeText(
-//                            this@RegistrationActivity,
-//                            registrationResponse.message,
-//                            Toast.LENGTH_SHORT
-//                        ).show()
-                        Log.d("----------" ,"onCreate: fail")
+                        Toast.makeText(
+                            this@RegistrationActivity,
+                            "Registration fail",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
-            } else {
-                // Registration request failed, handle the error
-                Toast.makeText(
-                    this@RegistrationActivity,
-                    "Registration failed",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+
+                override fun onFailure(call: Call<Any>, t: Throwable) {
+                    Toast.makeText(
+                        this@RegistrationActivity,
+                        "Registration network error",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
         }
+
     }
 }
 
-private fun <T> Call<T>.body(): Any {
-return true
-}
-
-data class AdminData(
-    val _id: String?,
-    val email: String?,
-    val name: String?,
-    val password:String?
+data class RegistrationData(
+    val Emp_ID:String,
+    val name: String,
+    val email: String,
+    val password: String,
+    val confirm_password: String
 )
 
 

@@ -15,7 +15,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 
-private val Any.message: Any
+val Any.message: Any
     get() {
         return true
     }
